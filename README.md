@@ -68,6 +68,25 @@ players (19–23 → 3, 24–28 → 4). The host can override it in the lobby. T
   a living Officer to choose, and the vote cannot close until every living player has confirmed a vote. If a
   phone drops out, that player reopens the app to take their seat back.
 
+## Deploying with Docker
+
+The `Dockerfile` builds the client and server and produces a small runtime image that listens on
+port 8004. On the VPS (with Docker and the Compose plugin installed):
+
+```bash
+git clone <your-repo-url> /opt/mafia && cd /opt/mafia
+docker compose up -d --build        # build and start in the background
+docker compose logs -f              # follow logs
+```
+
+`docker-compose.yml` publishes the app on `127.0.0.1:8004` only, so put Caddy in front for HTTPS:
+install Caddy on the host and use `deploy/Caddyfile` as in step 4 below. To update, run
+`git pull && docker compose up -d --build`. Updating restarts the container, which ends any game
+in progress.
+
+Without Compose: `docker build -t mafia .` then
+`docker run -d --restart unless-stopped -p 127.0.0.1:8004:8004 --name mafia mafia`.
+
 ## Deploying to a VPS
 
 These steps assume Ubuntu or Debian, a domain (for example `mafia.example.com`) whose DNS A

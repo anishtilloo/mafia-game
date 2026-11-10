@@ -1,0 +1,16 @@
+# Run on the VPS with:  docker compose up -d --build
+# The app is published on 127.0.0.1:8004 only, so it is reachable through the reverse proxy
+# (deploy/Caddyfile) and not directly from the internet. To test without a proxy, change the
+# port mapping to "8004:8004" and open http://<vps-ip>:8004.
+services:
+  mafia:
+    build: .
+    image: mafia:latest
+    container_name: mafia
+    restart: unless-stopped
+    environment:
+      PORT: 8004
+      # Speeds up narration pauses for testing; leave at 1 for real games.
+      MAFIA_SPEED: 1
+    ports:
+      - "127.0.0.1:8004:8004"
