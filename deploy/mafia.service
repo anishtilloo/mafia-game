@@ -1,0 +1,29 @@
+# systemd unit for the Mafia server.
+# Install: sudo cp deploy/mafia.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#          sudo systemctl enable --now mafia
+# Logs:    journalctl -u mafia -f
+
+[Unit]
+Description=Mafia party game server
+After=network.target
+
+[Service]
+Type=simple
+User=mafia
+WorkingDirectory=/opt/mafia
+ExecStart=/usr/bin/node server/dist/main.js
+Environment=NODE_ENV=production
+Environment=PORT=8004
+# Only Caddy (on the same machine) should reach the app directly.
+Environment=HOST=127.0.0.1
+Restart=always
+RestartSec=3
+
+# Basic hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+# Caddy reverse proxy for the Mafia server.
+# Replace mafia.example.com with your domain (its DNS A/AAAA record must point at this VPS).
+# Caddy fetches and renews the HTTPS certificate automatically, and proxies WebSockets as-is.
+# Install: sudo cp deploy/Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy
+
+mafia.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8004
+}
