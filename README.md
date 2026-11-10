@@ -70,8 +70,14 @@ players (19–23 → 3, 24–28 → 4). The host can override it in the lobby. T
 
 ## Deploying with Docker
 
-The `Dockerfile` builds the client and server and produces a small runtime image that listens on
-port 8004. On the VPS (with Docker and the Compose plugin installed):
+`docker-compose.yml` runs two containers built from the same `Dockerfile`:
+
+- `web` (frontend): nginx serving the Vue app on port 2000, forwarding `/socket.io` to the backend
+  (config in `deploy/nginx.conf`).
+- `server` (backend): the NestJS game server on port 8004, reachable only inside the compose
+  network.
+
+On the VPS (with Docker and the Compose plugin installed):
 
 ```bash
 git clone <your-repo-url> /opt/mafia && cd /opt/mafia
@@ -79,12 +85,14 @@ docker compose up -d --build        # build and start in the background
 docker compose logs -f              # follow logs
 ```
 
-`docker-compose.yml` publishes the app on `127.0.0.1:8004` only, so put Caddy in front for HTTPS:
-install Caddy on the host and use `deploy/Caddyfile` as in step 4 below. To update, run
+The frontend is published on `127.0.0.1:2000` only, so put Caddy in front for HTTPS: install Caddy
+on the host and use `deploy/Caddyfile` (already pointing at port 2000) as in step 4 below. To change
+the frontend port, edit the `ports` line of the `web` service, and the Caddyfile to match. To update, run
 `git pull && docker compose up -d --build`. Updating restarts the container, which ends any game
 in progress.
 
-Without Compose: `docker build -t mafia .` then
+The backend image also serves the frontend itself, so it can run alone without Compose:
+`docker build -t mafia .` then
 `docker run -d --restart unless-stopped -p 127.0.0.1:8004:8004 --name mafia mafia`.
 
 ## Deploying to a VPS
@@ -123,7 +131,8 @@ screens awake during the game.
    ```
 
 4. **Put it on your domain with HTTPS.** Edit `deploy/Caddyfile` and replace `mafia.example.com`
-   with your domain, then:
+   with your domain. For this systemd setup, also switch the `reverse_proxy` line to the
+   commented `127.0.0.1:8004` one (the default points at the Docker frontend on 2000). Then:
 
    ```bash
    sudo cp deploy/Caddyfile /etc/caddy/Caddyfile

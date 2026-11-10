@@ -5,5 +5,8 @@
 
 mafia.example.com {
 	encode gzip
-	reverse_proxy 127.0.0.1:8004
+	# Docker Compose setup: the `web` container on port 2000.
+	reverse_proxy 127.0.0.1:2000
+	# systemd setup (no Docker): use this line instead.
+	# reverse_proxy 127.0.0.1:8004
 }
