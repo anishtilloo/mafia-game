@@ -13,8 +13,15 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# ---- Runtime stage: only the compiled app and the server's production dependencies ----
-FROM node:20-alpine
+# ---- Frontend image (target: web): nginx serving the built client ----
+FROM nginx:1.27-alpine AS web
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/client/dist /usr/share/nginx/html
+EXPOSE 80
+
+# ---- Backend image (target: server, the default): the compiled server and its production deps ----
+# It also serves the client itself, so it still works on its own without the `web` container.
+FROM node:20-alpine AS server
 ENV NODE_ENV=production \
     PORT=8004 \
     HOST=0.0.0.0
